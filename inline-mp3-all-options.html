@@ -1,0 +1,204 @@
+<html>
+
+<head>
+    <script>
+        /*
+            General Approach
+
+            The way to get 'inline' sounds to play is with an <audio> element. This element can load audio data from 
+            a specific url and then play it once it is loaded.
+
+            I thought of two approaches:
+                1. Create the audio element when the user clicks
+                2. Create all of the audio elements when rendering the page
+
+            The second approach is simpler and uses less javascript. The downside is that it will increase the number of HTML elements on the page. 
+            Personally I don't think that will be much of an issue unless you have over 1000 phrases per page or something.
+        */
+
+        // ##############
+
+        // #### Option 1 ####
+        /*
+            When the user clicks a phrase, create an audio element, place it in a non-visible div and play the sound.
+            Next time user clicks the same phrase look to see if we have already loaded that phrase and if so play it again without re-loading it.
+        */
+        const existingAudio = []
+        function createElementAndPlayMp3(url) {
+            let audioDiv = document.getElementById('hiddenDivForAudio')
+            if (existingAudio.includes(url)) {
+                console.log('Audio already loaded, play it again')
+                let existingAudioElement = document.getElementById(url)
+                existingAudioElement.play()
+            } else {
+                console.log(`Creating element for url ${url}`)
+                let audioElement = document.createElement('audio');
+
+
+                // Add the element to the page in the 'hiddenDivForAudio' div
+                // and put the url (which will be the id) into an array so
+                // we can check if it exists next time
+                audioDiv.appendChild(audioElement)
+                existingAudio.push(url)
+
+                // Set the src and id attributes
+                // src will point to the mp3 file. In this demo I use the full URL (including omniglot.com)
+                // but your real site should be able to use the relative URL
+                let fullUrl = createFullUrlForDemo(url)
+                audioElement.setAttribute('src', fullUrl);
+                audioElement.setAttribute('id', url);
+                audioElement.load();
+                // Wait for the element to tell us it has the audio loaded and then play it
+                audioElement.addEventListener("canplay", function () {
+                    audioElement.play();
+                });
+            }
+
+        }
+        // ##############
+
+
+        // #### OPTION 2 ####
+        /*
+            In this example the audio tags were created with the rest of the page when it is rendered. 
+            When the user clicks the phrase we find the correct audio element using the ID. In this
+            case the ID is the relative URL for the file (I'm assuming that is unique).
+            Once we find the audio we play it!
+        */
+        function playExistingElement(audioElementID) {
+            console.log(`Finding pre-rendered element: ${audioElementID}`)
+            let audioElement = document.getElementById(audioElementID)
+            audioElement.play();
+        }
+        // ##############
+
+
+        // Helper method for pointing to full mp3 urls
+        function createFullUrlForDemo(url) {
+            // Prepend the full URL since this is only a a demo
+            let noLeadingSlashPartialURL = url
+            if (url.charAt(0) === '0') {
+                noLeadingSlashPartialURL = url.substring(1);
+            }
+
+            fullUrl = `https://omniglot.com/${noLeadingSlashPartialURL}`
+            // End prepend full url code
+            return fullUrl
+        }
+
+    </script>
+    
+    <style>
+        /* Using some of your styling to make it pretty :) */
+        h1 {
+            width: 20%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        img,
+        table {
+            margin: 6px 0px 6px 0px
+        }
+
+        table,
+        tr,
+        td {
+            padding: 3px;
+            border: 1px solid #669999;
+            border-collapse: collapse
+        }
+
+        table {
+            width: 60%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        td {
+            text-align: center;
+            width: 50%;
+        }
+
+        th,
+        th a {
+            background: #033;
+            color: #FF0;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        tr:nth-of-type(odd) {
+            background: #FFC;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        td.audioCell a,
+        td.audioCell div {
+            cursor: pointer;
+            color: blue;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <h1>Testing some MP3s</h1>
+        <div id="hiddenDivForAudio"></div>
+        <table>
+            <tbody>
+                <tr>
+                    <th>English</th>
+                    <th>slovenščina (Slovenian)</th>
+                </tr>
+                <tr>
+                    <td><a href="https://omniglot.com/language/phrases/welcome.htm">Welcome</a></td>
+                    <td class="audioCell">
+                        <!-- OPTION 1 - Creating an audio element on the fly. Also showing how the existing 'a' tags can be used-->
+                        <a onclick="createElementAndPlayMp3('/soundfiles/slovenian/welcome_sl.mp3')">Dobrodošli (create
+                            on the fly)</a>
+
+                        <!-- OPTION 2 - Audio Element used when creating an audio element for every mp3. Using a div tag instead of an 'a' because
+                        we aren't hyperlinking anymore. 
+                        preload="none" is very important, otherwise all the mp3s for the whole page will be loaded
+                         regardless of if the users clicks on them or not -->
+                        <audio preload="none" id="/soundfiles/slovenian/welcome_sl.mp3"
+                            src="https://omniglot.com/soundfiles/slovenian/welcome_sl.mp3"></audio>
+
+                        <!-- Using a div instead of an 'a' here since it isn't really a link anymore. You can continue to use
+                            an 'a' tag like option 1 does though-->
+                        <div onclick="playExistingElement('/soundfiles/slovenian/welcome_sl.mp3')">Dobrodošli
+                            (pre-existing)</div>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td><a href="https://omniglot.com/language/phrases/hello.htm">Hello (General greeting)</a></td>
+                    <td class="audioCell">
+                        <!-- OPTION 1 - Creating an audio element on the fly. Also showing how the existing 'a' tags can be used-->
+                        <a onclick="createElementAndPlayMp3('/soundfiles/slovenian/hello1_sl.mp3')">Pozdravljeni (create
+                            on the fly)</a>
+
+
+
+                        <!-- OPTION 2 - Audio Element used when creating an audio element for every mp3. Using a div tag instead of an 'a' because
+                        we aren't hyperlinking anymore. 
+                        preload="none" is very important, otherwise all the mp3s for the whole page will be loaded
+                         regardless of if the users clicks on them or not -->
+                        <audio preload="none" id="/soundfiles/slovenian/hello1_sl.mp3"
+                            src="https://omniglot.com/soundfiles/slovenian/hello1_sl.mp3"></audio>
+
+                        <div onclick="playExistingElement('/soundfiles/slovenian/hello1_sl.mp3')">Pozdravljeni
+                            (pre-existing)</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>
